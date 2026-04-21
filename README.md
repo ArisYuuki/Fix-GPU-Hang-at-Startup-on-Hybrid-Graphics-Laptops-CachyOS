@@ -42,3 +42,10 @@ Force the Intel iGPU to load first by modifying the mkinitcpio MODULES order.
 
 ```bash
 sudo nano /etc/mkinitcpio.conf
+## Modify MODULES Line
+
+Find the following line in your config:
+
+```bash
+MODULES=()
+
