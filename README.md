@@ -6,7 +6,7 @@
 
 Fix random boot hangs on CachyOS systems using Intel + NVIDIA hybrid graphics.
 
-This repository provides a simple fix for a common issue on hybrid laptops where the system may hang during boot due to improper GPU initialization order. By forcing the Intel iGPU to load first in initramfs, you ensure consistent and reliable boot behavior.
+This repository provides a simple and reliable fix for hybrid laptops where the system may hang during boot due to improper GPU initialization order. By forcing the Intel iGPU to load first in initramfs, you ensure consistent and stable boot behavior.
 
 # Hybrid GPU Boot Fix
 
@@ -16,25 +16,29 @@ On Intel + NVIDIA hybrid laptops, CachyOS may randomly fail to boot properly.
 
 Common issues include:
 
-- Black screen after LUKS decryption  
-- System hang before SDDM / login manager  
-- Boot works inconsistently  
-- Requires hard reset  
+- Black screen after LUKS decryption
+- System hang before SDDM / login manager
+- Boot works inconsistently
+- Requires hard reset
+
+---
 
 ## The Cause
 
-CachyOS does not always initialize the correct GPU first during early boot.
+CachyOS does not always initialize the correct GPU during early boot.
 
 On hybrid systems:
 
-- Intel iGPU (`i915`) should initialize first  
-- NVIDIA may sometimes load first instead  
+- Intel iGPU (`i915`) should initialize first
+- NVIDIA may load first instead
 
-This creates a race condition that breaks display initialization.
+This creates a race condition that breaks display initialization and causes boot failure.
+
+---
 
 ## The Fix
 
-Force the Intel iGPU to load first by modifying the mkinitcpio MODULES order.
+Force the Intel iGPU to load first by modifying the mkinitcpio `MODULES` order.
 
 ---
 
@@ -42,10 +46,91 @@ Force the Intel iGPU to load first by modifying the mkinitcpio MODULES order.
 
 ```bash
 sudo nano /etc/mkinitcpio.conf
-## Modify MODULES Line
+```
+---
 
-Find the following line in your config:
+## Find the following line in your config
 
 ```bash
 MODULES=()
+```
+---
 
+## Replace it with
+
+```bash
+MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm crc32c)
+```
+---
+
+## Important
+i915 must be first
+This ensures Intel initializes before NVIDIA
+Prevents GPU initialization conflicts during boot
+---
+
+## Rebuild Initramfs
+
+```bash
+sudo mkinitcpio -P
+```
+---
+## Reboot
+
+```bash
+sudo reboot
+```
+---
+
+## Result
+
+After applying this fix:
+
+No more boot hangs
+
+No black screen after LUKS
+
+SDDM loads consistently
+
+Reliable boot every time
+
+## Why This Works
+
+Hybrid laptops rely on the Intel iGPU for display output.
+
+Correct initialization order:
+
+```bash
+i915 → NVIDIA modules
+```
+---
+
+## This ensures:
+
+Intel initializes the display first
+
+NVIDIA loads afterward without conflict
+
+Boot completes successfully
+
+## Compatibility
+Intel + NVIDIA hybrid laptops (Optimus)
+
+CachyOS (all kernels)
+
+nvidia and nvidia-dkms
+
+Wayland and X11
+
+Works with nvidia_drm.modeset=1
+
+## Troubleshooting
+
+If issues persist, check logs:
+
+```bash
+journalctl -b -1 | grep -Ei "nvidia|drm|gpu"
+
+dmesg | grep -Ei "nvidia|drm|gpu"
+```
+---
