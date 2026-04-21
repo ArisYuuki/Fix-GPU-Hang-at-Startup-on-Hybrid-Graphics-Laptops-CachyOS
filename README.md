@@ -64,9 +64,13 @@ MODULES=(i915 nvidia nvidia_modeset nvidia_uvm nvidia_drm crc32c)
 ---
 
 ## Important
+
 i915 must be first
+
 This ensures Intel initializes before NVIDIA
+
 Prevents GPU initialization conflicts during boot
+
 ---
 
 ## Rebuild Initramfs
