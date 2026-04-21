@@ -138,3 +138,52 @@ journalctl -b -1 | grep -Ei "nvidia|drm|gpu"
 dmesg | grep -Ei "nvidia|drm|gpu"
 ```
 ---
+
+## If All Else Fails (Specifiic to Nvidia Hybrid Laptops)
+
+If none of the above has helped and you are still experiencing issues with booting to SDDM/PLM or see issues related to login, try switching from SDDM to LightDM. 
+
+## Install LightDM
+```bash
+sudo pacman -S lightdm lightdm-gtk-greeter
+```
+---
+
+## Stop and Disable SDDM
+```bash
+sudo systemctl stop sddm
+sudo systemctl disable sddm
+```
+---
+
+## Remove SDDM from Display Manager Priority
+```bash
+sudo rm -f /etc/systemd/system/display-manager.service
+```
+---
+
+## Enable and Start LightDM
+```bash
+sudo systemctl reset-failed lightdm
+sudo systemctl enable lightdm
+sudo systemctl start lightdm
+```
+---
+
+## Check the Status of LightDM and Display Manager
+Make sure that LightDM is working and is hooked to Display Manager BEFORE restarting as it will cause your laptop to not boot to GUI
+```bash
+systemctl status lightdm --no-pager
+systemctl status display-manager --no-pager
+```
+---
+
+## Reboot
+```bash
+sudo reboot
+```
+---
+
+## Why LightDM?
+LightDM is known to have superior compatability when running an Nvidia Hybrid Laptop as Nvidia+KDE+Wayland can have conflict with eachother.
+LightDM by default runs in x11 making it a very safe choice for Nvidia graphics in general over SDDM or PLM which use Wayland.
